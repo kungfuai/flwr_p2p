@@ -24,6 +24,8 @@ class ResNetModelBuilder:
         if self.net == "ResNet18":
             backbone = ResNet18Backbone()
             backbone.layers[2].strides = (1, 1)
+            # replace maxpooling with identity
+            backbone.layers[5] = keras.layers.Lambda(lambda x: x)
             # print(backbone.layers[2].get_config())
             model = ImageClassifier(backbone=backbone, num_classes=self.num_classes)
         elif self.net == "ResNet50":

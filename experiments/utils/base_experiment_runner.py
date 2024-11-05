@@ -1,6 +1,7 @@
 import numpy as np
 
 # from flwr_serverless.keras.example import MnistModelBuilder
+from tensorflow import keras
 from experiments.model.simple_mnist_model import SimpleMnistModel
 from dataclasses import dataclass
 from experiments.model.keras_models import ResNetModelBuilder
@@ -225,15 +226,29 @@ class BaseExperimentRunner:
         partition_idx = node_idx
         partitioned_x_train = self.partitioned_x_train
         partitioned_y_train = self.partitioned_y_train
+        
+        # Create image data augmentation layer
+        data_augmentation = keras.Sequential([
+            keras.layers.RandomFlip("horizontal"),
+            keras.layers.RandomRotation(0.1),
+            keras.layers.RandomZoom(0.1),
+            # keras.layers.RandomBrightness(0.2),
+            # keras.layers.RandomContrast(0.2),
+        ])
+        
         while True:
-            for i in range(0, len(partitioned_x_train[partition_idx]), self.batch_size):
-                x_train_batch, y_train_batch = (
-                    partitioned_x_train[partition_idx][i : i + self.batch_size],
-                    partitioned_y_train[partition_idx][i : i + self.batch_size],
-                )
-                # print("x_train_batch.shape", x_train_batch.shape)
-                # print("y_train_batch.shape", y_train_batch.shape)
-                # raise Exception("stop")
+            # Get indices and shuffle them
+            indices = np.arange(len(partitioned_x_train[partition_idx]))
+            np.random.shuffle(indices)
+            
+            for i in range(0, len(indices), self.batch_size):
+                batch_indices = indices[i:i + self.batch_size]
+                x_train_batch = partitioned_x_train[partition_idx][batch_indices]
+                y_train_batch = partitioned_y_train[partition_idx][batch_indices]
+                
+                # Apply augmentation
+                x_train_batch = data_augmentation(x_train_batch, training=True)
+                
                 yield x_train_batch, y_train_batch
 
     # ***currently this only works for mnist*** and for num_nodes = 2, 10

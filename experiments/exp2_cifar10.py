@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # base config
     base_config = {
         "project": "cifar10",
-        "epochs": 20,
+        "epochs": 30,
         "batch_size": 128,
         "steps_per_epoch": 1200,
         "lr": 0.0005,
@@ -96,6 +96,9 @@ if __name__ == "__main__":
         config = {**base_config, **config_overide}
         print(
             f"\n***** Starting trial {i + 1} of {len(config_overides)} with config: {str(config)[:80]}...\n"
+        )
+        print(
+            f"  nodes: {config['num_nodes']}, strategy: {config['strategy']}, use_async: {config['use_async']}"
         )
         if args.use_default_configs:
             # use subprocess to run this script

@@ -3,3 +3,4 @@ boto3
 moto==4.2.14
 tensorflow==2.11.*
 keras-cv==0.5.*
+wandb==0.15.1
