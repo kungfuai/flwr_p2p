@@ -7,7 +7,7 @@ class ResNetModelBuilder:
     def __init__(
         self,
         lr=0.001,
-        include_rescaling=False,
+        include_rescaling=True,
         num_classes=10,
         weights=None,
         net="ResNet50",
@@ -22,14 +22,14 @@ class ResNetModelBuilder:
 
     def run(self):
         if self.net == "ResNet18":
-            backbone = ResNet18Backbone()
+            backbone = ResNet18Backbone(include_rescaling=self.include_rescaling)
             backbone.layers[2].strides = (1, 1)
             # replace maxpooling with identity
             backbone.layers[5] = keras.layers.Lambda(lambda x: x)
             # print(backbone.layers[2].get_config())
             model = ImageClassifier(backbone=backbone, num_classes=self.num_classes)
         elif self.net == "ResNet50":
-            backbone = keras_cv.models.ResNet50V2Backbone()
+            backbone = keras_cv.models.ResNet50V2Backbone(include_rescaling=self.include_rescaling)
             model = ImageClassifier(
                 backbone=backbone,
                 num_classes=self.num_classes,

@@ -8,3 +8,7 @@ wandb/
 env.sh
 /build
 /dist
+lib/
+bin/
+pyvenv.cfg
+run.sh

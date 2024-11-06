@@ -23,8 +23,8 @@ if __name__ == "__main__":
     base_config = {
         "project": "cifar10",
         "epochs": 30,
-        "batch_size": 128,
-        "steps_per_epoch": 1200,
+        "batch_size": 512,
+        "steps_per_epoch": 100,
         "lr": 0.0005,
         "num_nodes": 2,
         "use_async": False,
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                 "random_seed": random_seed,
                 "num_nodes": 1,
             }
-            for random_seed in [None, None]  # range(1, 3)
+            for random_seed in [100, 101]
         ]
         config_overides += [
             {

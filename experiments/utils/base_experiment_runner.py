@@ -223,17 +223,19 @@ class BaseExperimentRunner:
         return partitioned_x_train, partitioned_y_train, x_test, self.y_test
 
     def get_train_dataloader_for_node(self, node_idx: int):
+        import albumentations as A
+
         partition_idx = node_idx
         partitioned_x_train = self.partitioned_x_train
         partitioned_y_train = self.partitioned_y_train
         
-        # Create image data augmentation layer
-        data_augmentation = keras.Sequential([
-            keras.layers.RandomFlip("horizontal"),
-            keras.layers.RandomRotation(0.1),
-            keras.layers.RandomZoom(0.1),
-            # keras.layers.RandomBrightness(0.2),
-            # keras.layers.RandomContrast(0.2),
+        # Create augmentation pipeline using albumentations
+        transform = A.Compose([
+            A.HorizontalFlip(p=0.5),
+            A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.1, rotate_limit=15, p=0.5),
+            A.RandomBrightnessContrast(p=0.2),
+            # A.GaussNoise(p=0.2),
+            # A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         
         while True:
@@ -246,10 +248,13 @@ class BaseExperimentRunner:
                 x_train_batch = partitioned_x_train[partition_idx][batch_indices]
                 y_train_batch = partitioned_y_train[partition_idx][batch_indices]
                 
-                # Apply augmentation
-                x_train_batch = data_augmentation(x_train_batch, training=True)
+                # Apply augmentation to each image in batch
+                x_train_aug = np.zeros_like(x_train_batch)
+                for j in range(len(x_train_batch)):
+                    augmented = transform(image=x_train_batch[j])
+                    x_train_aug[j] = augmented['image']
                 
-                yield x_train_batch, y_train_batch
+                yield x_train_aug, y_train_batch
 
     # ***currently this only works for mnist*** and for num_nodes = 2, 10
     def split_training_data_into_paritions(
