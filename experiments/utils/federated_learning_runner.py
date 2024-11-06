@@ -4,6 +4,7 @@ from typing import List, Any
 from tensorflow import keras
 from tensorflow.keras.utils import set_random_seed
 from wandb.keras import WandbCallback
+from tensorflow.keras.callbacks import ReduceLROnPlateau
 
 from flwr.common import ndarrays_to_parameters
 
@@ -152,8 +153,10 @@ class FederatedLearningRunner(BaseExperimentRunner):
         with ThreadPoolExecutor(max_workers=self.num_nodes) as ex:
             futures = []
             for i_node in range(self.num_nodes):
+                lr_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
                 callbacks = [
                     callbacks_per_client[i_node],
+                    lr_plateau,
                 ]
                 if self.config.track:
                     callbacks.append(CustomWandbCallback(i_node))
@@ -240,11 +243,12 @@ class FederatedLearningRunner(BaseExperimentRunner):
             y_test = self.y_test[: self.test_steps * self.batch_size, ...]
         for i_node in execution_sequence:
             print("Training node", i_node)
+            lr_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
             model_federated[i_node].fit(
                 x=train_loaders[i_node],
                 epochs=num_epochs_per_round,
                 steps_per_epoch=self.steps_per_epoch,
-                callbacks=[callbacks_per_client[i_node]],
+                callbacks=[callbacks_per_client[i_node], lr_plateau],
                 validation_data=(x_test, y_test),
                 validation_steps=self.test_steps,
                 validation_batch_size=self.batch_size,
@@ -290,8 +294,10 @@ class FederatedLearningRunner(BaseExperimentRunner):
             wandb_callbacks = [WandbCallback() for i in range(num_partitions)]
         for i_round in range(num_federated_rounds):
             print("\n============ Round", i_round)
+            lr_plateau = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
             callbacks = [
                 callbacks_per_client[i_partition],
+                lr_plateau,
             ]
             if self.config.track:
                 callbacks.append(wandb_callbacks[i_partition])

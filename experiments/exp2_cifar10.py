@@ -22,10 +22,10 @@ if __name__ == "__main__":
     # base config
     base_config = {
         "project": "cifar10",
-        "epochs": 30,
+        "epochs": 80,
         "batch_size": 512,
         "steps_per_epoch": 100,
-        "lr": 0.0005,
+        "lr": 0.001,
         "num_nodes": 2,
         "use_async": False,
         "federated_type": "concurrent",
@@ -56,6 +56,7 @@ if __name__ == "__main__":
             {
                 "random_seed": random_seed,
                 "num_nodes": 1,
+                "use_async": True,
             }
             for random_seed in [100, 101]
         ]
